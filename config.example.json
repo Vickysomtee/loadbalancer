@@ -1,0 +1,10 @@
+{
+    "port": ":7080",
+    "healthCheckInterval": "2s",
+    "servers": [
+      { "url": "http://localhost:22966", "weight": 5 },
+      { "url": "http://localhost:22966", "weight": 3 },
+      { "url": "http://localhost:22966", "weight": 2 }
+    ]
+  }
+  
