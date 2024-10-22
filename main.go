@@ -9,36 +9,34 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/mr-karan/balance"
+	"github.com/appleboy/loadbalancer-algorithms/weighted"
 )
 
-var balancer = balance.NewBalance()
+// var balancer = balance.NewBalance()
+var balance weighted.RoundRobin
+var err error
 
 type Config struct {
-	Port                string `json:"port"`
-	HealthCheckInterval string `json:"healthCheckInterval"`
-	Servers             []Url  `json:"servers"`
-}
-
-type Url struct {
-	U string `json:"url"`
-	// IsHealthy bool
-	Weight int `json:"weight"`
+	Port                string   `json:"port"`
+	HealthCheckInterval string   `json:"healthCheckInterval"`
+	Servers             []Server `json:"servers"`
 }
 
 type Server struct {
-	URL *url.URL `json:"url"`
+	Host   *url.URL `json:"host"`
+	Url    string   `json:"url"`
+	Weight int      `json:"weight"`
 	// IsHealthy bool
 }
 
-func loadServers(config *Config) {
-	for _, server := range config.Servers {
-		err := balancer.Add(server.U, server.Weight)
+func loadServers(servers []*Server) {
+	for _, server := range servers {
+		err := balance.AddServer(server.Host, server.Weight)
 
 		if err != nil {
-			fmt.Printf("Error adding %s to loadbalancer\n: %s", server.U, err)
+			fmt.Printf("Error adding %s to loadbalancer\n: %s", server.Url, err)
 		} else {
-			fmt.Printf("%s added to load balancer\n", server.U)
+			fmt.Printf("%s added to load balancer\n", server.Url)
 		}
 	}
 }
@@ -59,11 +57,14 @@ func loadConfig(file string) (Config, error) {
 	return config, nil
 }
 
-// round robin algorithm implementation to distribute load across servers
 func getNextServer(servers []*Server) *Server {
-	url := balancer.Get()
+	url := balance.NextServer()
+	if url == nil {
+		return nil
+	}
+
 	for _, server := range servers {
-		if url == server.URL.String() {
+		if url == server.Host {
 			return server
 		}
 	}
@@ -75,34 +76,39 @@ func ReverseProxy(url *url.URL) *httputil.ReverseProxy {
 }
 
 func main() {
+	balance, err = weighted.New()
+	if err != nil {
+		panic(err)
+	}
 	config, err := loadConfig("config.json")
 	if err != nil {
 		log.Fatalf("Error loading configuration: %s", err.Error())
 	}
 
-	loadServers(&config)
-
 	var servers []*Server
 
-	for _, u := range config.Servers {
-		u, _ := url.Parse(u.U)
+	for _, srv := range config.Servers {
+		u, _ := url.Parse(srv.Url)
 		server := &Server{
-			URL: u,
+			Host:   u,
+			Url:    srv.Url,
+			Weight: srv.Weight,
 		}
 
 		servers = append(servers, server)
 	}
 
+	loadServers(servers)
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		server := getNextServer(servers)
-		fmt.Println(servers)
 
-		fmt.Println(server)
+		if server == nil {
+			http.Error(w, "No available server", http.StatusServiceUnavailable)
+			return
+		}
 
-		// adding this header just for checking from which server the request is being handled.
-		// this is not recommended from security perspective as we don't want to let the client know which server is handling the request.
-		// w.Header().Add("X-Forwarded-Server", server.URL)
-		httputil.NewSingleHostReverseProxy(server.URL).ServeHTTP(w, r)
+		httputil.NewSingleHostReverseProxy(server.Host).ServeHTTP(w, r)
 	})
 
 	log.Println("Starting load balancer on port", config.Port)

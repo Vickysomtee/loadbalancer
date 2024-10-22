@@ -1,2 +1,2 @@
-github.com/mr-karan/balance v0.0.0-20230131075323-e0d55eb3e4b9 h1:mQECODpWykYPwBg+ELr04Lwm/kSP6+2LPWmvVTwrTPo=
-github.com/mr-karan/balance v0.0.0-20230131075323-e0d55eb3e4b9/go.mod h1:YMjMm+2l1ye+v1MeuUJ1QPxXKzWp+x8iqg4vWuKB3Ao=
+github.com/appleboy/loadbalancer-algorithms v0.0.0-20240914061947-c0e25a94ef6d h1:+4xKgt1axTG69DsXqaFGQ7frFkjAsCDuuica1SBHrek=
+github.com/appleboy/loadbalancer-algorithms v0.0.0-20240914061947-c0e25a94ef6d/go.mod h1:tdLamcCSEiV4gtUZLTf/krmpCQy/rDc3/U2b3bhVApg=
