@@ -2,19 +2,25 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/appleboy/loadbalancer-algorithms/weighted"
 )
 
-// var balancer = balance.NewBalance()
-var balance weighted.RoundRobin
-var err error
+var (
+	err        error
+	mutex      sync.Mutex
+	balance    weighted.RoundRobin
+	configFile = flag.String("config", "config.json", "Location to config file")
+)
 
 type Config struct {
 	Port                string   `json:"port"`
@@ -23,10 +29,11 @@ type Config struct {
 }
 
 type Server struct {
-	Host   *url.URL `json:"host"`
-	Url    string   `json:"url"`
-	Weight int      `json:"weight"`
-	// IsHealthy bool
+	Host           *url.URL `json:"host"`
+	Url            string   `json:"url"`
+	HealthCheckUrl string
+	IsHealthy      bool
+	Weight         int `json:"weight"`
 }
 
 func loadServers(servers []*Server) {
@@ -57,6 +64,24 @@ func loadConfig(file string) (Config, error) {
 	return config, nil
 }
 
+func healthCheck(server *Server, healthCheckInterval time.Duration) {
+	for range time.Tick(healthCheckInterval) {
+		res, err := http.Head(server.HealthCheckUrl)
+		mutex.Lock()
+		if err != nil || res.StatusCode != http.StatusOK {
+			fmt.Printf("%s is down\n", server.Url)
+			server.IsHealthy = false
+			err := balance.RemoveServer(server.Host)
+			if err != nil {
+				fmt.Printf("Could not remove unhealthy server %s: %s", server.Url, err)
+			}
+		} else {
+			server.IsHealthy = true
+		}
+		mutex.Unlock()
+	}
+}
+
 func getNextServer(servers []*Server) *Server {
 	url := balance.NextServer()
 	if url == nil {
@@ -71,18 +96,19 @@ func getNextServer(servers []*Server) *Server {
 	return nil
 }
 
-func ReverseProxy(url *url.URL) *httputil.ReverseProxy {
-	return httputil.NewSingleHostReverseProxy(url)
-}
-
 func main() {
 	balance, err = weighted.New()
 	if err != nil {
 		panic(err)
 	}
-	config, err := loadConfig("config.json")
+	config, err := loadConfig(*configFile)
 	if err != nil {
 		log.Fatalf("Error loading configuration: %s", err.Error())
+	}
+
+	healthCheckInterval, err := time.ParseDuration(config.HealthCheckInterval)
+	if err != nil {
+		log.Fatalf("Invalid health check interval: %s", err.Error())
 	}
 
 	var servers []*Server
@@ -90,12 +116,15 @@ func main() {
 	for _, srv := range config.Servers {
 		u, _ := url.Parse(srv.Url)
 		server := &Server{
-			Host:   u,
-			Url:    srv.Url,
-			Weight: srv.Weight,
+			Host:           u,
+			Url:            srv.Url,
+			Weight:         srv.Weight,
+			IsHealthy:      true,
+			HealthCheckUrl: srv.HealthCheckUrl,
 		}
 
 		servers = append(servers, server)
+		go healthCheck(server, healthCheckInterval)
 	}
 
 	loadServers(servers)

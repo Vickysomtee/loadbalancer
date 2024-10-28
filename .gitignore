@@ -17,10 +17,3 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 loadbalancer
-
-# Go workspace file
-go.work
-
-keys.json
-
-config.json
