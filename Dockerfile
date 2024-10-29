@@ -10,5 +10,7 @@
  # Build the Go application inside the container
  RUN go build
 
+ EXPOSE 7080
+
  # Define the command to run your application
- ENTRYPOINT ["./loadbalancer -c config.json"]
+ ENTRYPOINT ["./loadbalancer -config=config.json"]

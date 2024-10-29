@@ -23,7 +23,6 @@ var (
 )
 
 type Config struct {
-	Port                string   `json:"port"`
 	HealthCheckInterval string   `json:"healthCheckInterval"`
 	Servers             []Server `json:"servers"`
 }
@@ -140,8 +139,8 @@ func main() {
 		httputil.NewSingleHostReverseProxy(server.Host).ServeHTTP(w, r)
 	})
 
-	log.Println("Starting load balancer on port", config.Port)
-	err = http.ListenAndServe(config.Port, nil)
+	log.Println("Starting load balancer on port 7080")
+	err = http.ListenAndServe("7080", nil)
 	if err != nil {
 		log.Fatalf("Error starting load balancer: %s\n", err.Error())
 	}

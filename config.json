@@ -1,9 +1,20 @@
 {
-  "port": ":7080",
   "healthCheckInterval": "2s",
   "servers": [
-    { "url": "http://localhost:5100", "weight": 5, "healthCheckUrl": "http://localhost:5100/health" },
-    { "url": "http://localhost:5200", "weight": 3, "healthCheckUrl": "http://localhost:5200/health" },
-    { "url": "http://localhost:5300", "weight": 2, "healthCheckUrl": "http://localhost:5300/health" }
+    {
+      "url": "http://localhost:5100",
+      "weight": 5,
+      "healthCheckUrl": "http://localhost:5100/health"
+    },
+    {
+      "url": "http://localhost:5200",
+      "weight": 3,
+      "healthCheckUrl": "http://localhost:5200/health"
+    },
+    {
+      "url": "http://localhost:5300",
+      "weight": 2,
+      "healthCheckUrl": "http://localhost:5300/health"
+    }
   ]
 }
