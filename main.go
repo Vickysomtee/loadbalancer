@@ -140,7 +140,7 @@ func main() {
 	})
 
 	log.Println("Starting load balancer on port 7080")
-	err = http.ListenAndServe("7080", nil)
+	err = http.ListenAndServe(":7080", nil)
 	if err != nil {
 		log.Fatalf("Error starting load balancer: %s\n", err.Error())
 	}
