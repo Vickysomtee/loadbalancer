@@ -13,4 +13,4 @@
  EXPOSE 7080
 
  # Define the command to run your application
- ENTRYPOINT ["./loadbalancer -config=config.json"]
+#  ENTRYPOINT ["./loadbalancer -config=config.json"]
