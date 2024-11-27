@@ -48,7 +48,7 @@ Requirements
 Run the command
 
 ```sh
-docker run -p 7080:7080 -v ./config.json:/app/loadbalancer/config.json --name loadbalancer -d vickysomtee/loadbalancer
+docker run -p 7080:7080 -v ./config.json:/app/loadbalancer/config.json --name loadbalancer -d ghcr.io/vickysomtee/loadbalancer
  ```
 
 ## Clone repository
