@@ -8,7 +8,7 @@ weight 5 represents 50% of traffic sent to the server
 weight 3 represents 30% of traffic sent to the server
 weight 2 represents 20% of traffic sent to the server
 
-Total weights sums up tp 10 which represent 100% of all traffic
+Total weights sums up to 10 which represent 100% of all traffic
 ```
 
 # Getting Started
@@ -43,18 +43,18 @@ An important requirement is to have a `config.json` to load the servers and othe
 ## Docker setup
 Requirements
 - Docker installed
-- `config.json` file that will be mounted to docker
+- `config.json` file that will be mounted to the docker container
 
 Run the command
 
 ```sh
-docker run -p 7080:7080 -v <path-to-config.json>:./config.json --name loadbalancer -d vickysomtee/loadbalancer
-```
+docker run -p 7080:7080 -v ./config.json:/app/loadbalancer/config.json --name loadbalancer -d vickysomtee/loadbalancer
+ ```
 
 ## Clone repository
 Requirements
 - Go installed
-- `config.json` file that will be mounted to docker
+- `config.json` file
 
 Clone the Repository to your local directory
 ```sh

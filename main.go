@@ -70,10 +70,7 @@ func healthCheck(server *Server, healthCheckInterval time.Duration) {
 		if err != nil || res.StatusCode != http.StatusOK {
 			fmt.Printf("%s is down\n", server.Url)
 			server.IsHealthy = false
-			err := balance.RemoveServer(server.Host)
-			if err != nil {
-				fmt.Printf("Could not remove unhealthy server %s: %s", server.Url, err)
-			}
+			balance.RemoveServer(server.Host)
 		} else {
 			server.IsHealthy = true
 		}
